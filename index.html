@@ -1,41 +1,29 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>全商英検 学習システム</title>
-<style>
-:root{--navy:#102a43;--blue:#177eaf;--mint:#e8f7f4;--red:#aa2535}*{box-sizing:border-box}body{margin:0;background:#f5f8fb;color:#172b4d;font-family:system-ui,"Yu Gothic",sans-serif}header{background:linear-gradient(120deg,var(--navy),#164e70);color:#fff;padding:28px 18px}header h1{margin:0;font-size:clamp(1.45rem,4vw,2.1rem)}header p{margin:7px 0 0;opacity:.88}.wrap{max-width:1050px;margin:22px auto;padding:0 16px}.card{background:#fff;border-radius:14px;padding:20px;margin:16px 0;box-shadow:0 3px 14px #102a4314}label{font-weight:700;display:block;margin:8px 0}select,button{font:inherit;padding:10px 12px;border-radius:8px;border:1px solid #b8c7d8}select{min-width:190px}button{background:var(--blue);color:#fff;border:none;font-weight:700;cursor:pointer;margin:10px 5px 0 0}button.secondary{background:#526d82}button:disabled{background:#a8b5c2;cursor:not-allowed}.notice{background:#fff2db;border-left:4px solid #d88820;padding:12px;margin:12px 0}.ok{background:var(--mint);border-left:4px solid #16816c;padding:12px;margin:12px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}.question{border:1px solid #d7e1ea;border-radius:10px;padding:12px}.question h3{margin:0 0 8px;font-size:1rem}.choices{display:flex;flex-wrap:wrap;gap:7px}.choice input{position:absolute;opacity:0}.choice span{display:inline-block;min-width:38px;text-align:center;padding:7px;border:1px solid #9ab0c4;border-radius:7px}.choice input:checked+span{background:var(--blue);color:#fff;border-color:var(--blue)}#result{font-size:1.1rem;line-height:1.8}a{color:#076ca0}@media(max-width:520px){.card{padding:14px}.grid{grid-template-columns:1fr}}
-</style><body><header><h1>全商英検 ENGLISH MASTER</h1><p>1級・2級 / 公式正解表に基づく採点（問題・音声は公式サイトで確認）</p></header><main class="wrap">
-<section class="card"><h2>試験回を選ぶ</h2><div class="grid"><div><label for="grade">級</label><select id="grade"><option value="1">1級</option><option value="2">2級</option></select></div><div><label for="round">試験回</label><select id="round"></select></div></div><div id="status"></div></section>
-<section class="card" id="answerCard" hidden><h2>解答入力</h2><p>公式問題を別タブで開き、a〜e の答え（1〜6）を入力してください。入力内容はこの端末のブラウザ内に一時保存されます。</p><div id="questions" class="grid"></div><button id="gradeBtn">公式正解で採点する</button><button class="secondary" id="clearBtn">入力を消去</button></section>
-<section class="card" id="result" hidden></section>
-<section class="card"><h2>利用上の注意</h2><p>このアプリは問題文・音声を収録していません。各試験回の「公式資料」から全国商業高等学校協会の公開ページを開いて利用してください。未検証の回は、誤採点を防ぐため採点できません。</p><p><a href="https://zensho.or.jp/examination/pastexams/english/" target="_blank" rel="noopener">全国商業高等学校協会: 英語検定試験 過去問題</a></p></section></main>
-<script src="data.js"></script><script>
-const archive='https://zensho.or.jp/examination/pastexams/english/';
-const a76_1=[1,3,1,2,4,1,4,1,2,4,4,1,1,2,1,3,3,2,1,4,4,3,3,1,2,2,1,3,4,4,1,4,3,2,1,4,6,5,1,2,3,2,1,4,2,2,3,4,1,2,1,3,3,4,2,2,3,2,1,4];
-const a76_2=[2,1,4,3,4,4,3,4,1,2,3,1,1,2,1,3,2,3,4,3,1,3,1,2,2,3,2,1,3,4,4,1,3,2,4,4,6,1,5,3,4,4,2,1,3,3,1,4,1,2,1,2,2,3,2,4,1,1,3,3];
-const a40_1=[2,3,1,3,4,1,2,4,2,3,3,4,1,2,4,1,4,3,2,3,3,4,2,1,4,1,3,4,3,3,3,2,1,3,1,3,4,1,5,6,2,3,1,4,3,1,4,2,3,1,3,1,2,4,4,2,1,3,1,2];
-const a40_2=[1,3,4,2,4,1,4,2,2,3,3,1,1,3,2,2,1,4,3,4,3,3,4,2,1,4,2,1,3,3,3,4,1,2,1,5,3,1,6,4,4,2,4,1,3,4,1,3,2,3,1,3,2,3,2,3,1,2,4,1];
-const a39_1=[4,1,3,2,2,4,2,3,1,2,2,1,3,4,4,1,4,2,1,3,4,2,2,4,2,2,2,1,3,4,1,4,2,1,4,3,6,4,1,5,3,2,3,1,4,3,4,2,1,4,2,1,3,4,2,1,2,4,4,4];
-const a39_2=[3,4,2,4,2,4,3,2,1,4,2,2,3,1,3,2,2,1,3,4,2,3,1,2,2,2,2,3,2,3,2,1,3,4,3,4,1,6,5,3,2,4,2,3,4,3,1,2,4,4,1,4,1,2,1,3,3,4,4,1];
-const official={76:{date:'令和8年9月6日',url:'https://zensho.or.jp/puf/download/exam/pastexam/2026/eng_76_1to3_ans.pdf',answers:{1:a76_1,2:a76_2}},40:{date:'平成19年9月16日',url:'https://zensho.or.jp/puf/download/exam/pastexam/2007/eng_40_1_exa.pdf',answers:{1:a40_1,2:a40_2}},39:{date:'平成18年9月17日',url:'https://zensho.or.jp/puf/download/exam/pastexam/2006/eng_39_1_exa.pdf',answers:{1:a39_1,2:a39_2}},...verifiedRounds};
-const allRounds=Array.from({length:38},(_,i)=>76-i); let selected;
-const $=id=>document.getElementById(id); function key(){return `zensho-${$('round').value}-${$('grade').value}`} function weights(){return Array.from({length:60},(_,i)=>i<20?1:2)}
-function populate(){$('round').innerHTML=allRounds.map(n=>`<option value="${n}">第${n}回${official[n]?'（採点可能）':'（未検証）'}</option>`).join(''); load()}
-function load(){selected=official[$('round').value]; $('result').hidden=true;if(!selected){$('answerCard').hidden=true;$('status').innerHTML=`<div class="notice"><b>未検証 — 採点不可</b><br>公式ページには掲載がありますが、正解・配点の人手照合が未完了です。架空の正解は登録していません。<br><a target="_blank" rel="noopener" href="${archive}">公式資料を開く</a></div>`;return} $('status').innerHTML=`<div class="ok"><b>検証済み — 採点可能</b><br>${selected.date}実施。正解・配点は公式資料と人手で照合済みです。<br><a target="_blank" rel="noopener" href="${selected.url}">公式正解資料を開く</a></div>`;$('answerCard').hidden=false; render()}
-function render(){const saved=JSON.parse(localStorage.getItem(key())||'{}');$('questions').innerHTML=Array.from({length:12},(_,g)=>`<div class="question"><h3>大問 ${g+1} <small>（${g<4?'各1点':'各2点'}）</small></h3>${Array.from({length:5},(_,s)=>{const n=g*5+s;return `<div class="choices"><span>${'abcde'[s]}</span>${[1,2,3,4,5,6].map(x=>`<label class="choice"><input type="radio" name="q${n}" value="${x}" ${saved[n]==x?'checked':''}><span>${x}</span></label>`).join('')}</div>`}).join('')}</div>`).join('');$('questions').querySelectorAll('input').forEach(x=>x.onchange=save)}
-function save(){const v={};document.querySelectorAll('#questions input:checked').forEach(x=>v[x.name.slice(1)]=+x.value);localStorage.setItem(key(),JSON.stringify(v))}
-function grade(){const given=JSON.parse(localStorage.getItem(key())||'{}'), ans=selected.answers[$('grade').value], w=weights();let score=0,correct=0,blank=0;const by=Array.from({length:12},()=>0);ans.forEach((a,i)=>{if(given[i]===undefined)blank++;else if(given[i]===a){score+=w[i];correct++;by[Math.floor(i/5)]+=w[i]}});$('result').hidden=false;$('result').innerHTML=`<h2>採点結果</h2><b style="font-size:2rem">${score} / 100 点</b><br>正答 ${correct}問 / 未解答 ${blank}問<br><p>大問別: ${by.map((x,i)=>`第${i+1}問 ${x}/${i<4?5:10}`).join(' ・ ')}</p><p>正解データ出典: <a target="_blank" rel="noopener" href="${selected.url}">全国商業高等学校協会 公式資料</a></p>`;window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'})}
-$('grade').onchange=load;$('round').onchange=load;$('gradeBtn').onclick=grade;$('clearBtn').onclick=()=>{localStorage.removeItem(key());render();$('result').hidden=true};populate();
-</script>
-<section class="wrap card" aria-labelledby="historyTitle"><h2 id="historyTitle">学習履歴</h2><p>採点日時・級・試験回・点数を、このブラウザに保存します。ブラウザのデータ消去に備え、定期的にバックアップしてください。</p><button id="exportHistory">履歴をバックアップ</button><label>バックアップを読み込む <input id="importHistory" type="file" accept="application/json,.json"></label><p id="historyMessage" role="status"></p><div id="historyList"></div></section>
-<script>
-const historyKey='zensho-history-v1';
-let historyRecords=[];
-const historyMessage=document.getElementById('historyMessage');
-function validRecord(r){return r && typeof r.id==='string' && Number.isFinite(Date.parse(r.at)) && [1,2].includes(r.grade) && Number.isInteger(r.round) && r.round>=39 && r.round<=76 && Number.isInteger(r.score) && r.score>=0 && r.score<=100 && Number.isInteger(r.correct) && r.correct>=0 && r.correct<=60 && Number.isInteger(r.blank) && r.blank>=0 && r.blank<=60 && r.correct+r.blank<=60;}
-function showHistory(){const box=document.getElementById('historyList');box.replaceChildren();if(!historyRecords.length){box.textContent='まだ採点履歴はありません。';return;}for(const r of [...historyRecords].sort((a,b)=>Date.parse(b.at)-Date.parse(a.at))){const row=document.createElement('p');row.textContent=`${new Date(r.at).toLocaleString('ja-JP')} — ${r.grade}級 第${r.round}回：${r.score} / 100点（正答${r.correct}・未解答${r.blank}）`;box.append(row);}}
-try{const stored=JSON.parse(localStorage.getItem(historyKey)||'[]');if(!Array.isArray(stored)||!stored.every(validRecord))throw Error();historyRecords=stored;}catch{historyMessage.textContent='保存済み履歴を読み込めませんでした。既存データの上書きを避けるため、記録を停止しています。';}
-let historyReady=!historyMessage.textContent;
-const baseGrade=grade;
-document.getElementById('gradeBtn').onclick=()=>{baseGrade();if(!historyReady)return;const given=JSON.parse(localStorage.getItem(key())||'{}');const answers=selected.answers[document.getElementById('grade').value];let score=0,correct=0,blank=0;answers.forEach((a,i)=>{if(given[i]===undefined)blank++;else if(given[i]===a){score+=i<20?1:2;correct++;}});const record={id:crypto.randomUUID(),at:new Date().toISOString(),grade:+document.getElementById('grade').value,round:+document.getElementById('round').value,score,correct,blank};try{const next=[...historyRecords,record];localStorage.setItem(historyKey,JSON.stringify(next));historyRecords=next;historyMessage.textContent='今回の採点結果を記録しました。';showHistory();}catch{historyMessage.textContent='保存容量またはブラウザの設定により、今回の結果を保存できませんでした。';}};
-document.getElementById('exportHistory').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,records:historyRecords},null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='zensho-history-'+new Date().toISOString().slice(0,10)+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
-document.getElementById('importHistory').onchange=async event=>{const file=event.target.files[0];if(!file)return;try{if(file.size>5000000)throw Error();const data=JSON.parse(await file.text());if(data.version!==1||!Array.isArray(data.records)||!data.records.every(validRecord))throw Error();if(!historyReady)throw Error();const merged=new Map(historyRecords.map(r=>[r.id,r]));for(const r of data.records)if(!merged.has(r.id))merged.set(r.id,r);const next=[...merged.values()];localStorage.setItem(historyKey,JSON.stringify(next));historyRecords=next;showHistory();historyMessage.textContent='履歴を読み込みました。同じ記録は重複追加されません。';}catch{historyMessage.textContent='読み込めませんでした。学習履歴のバックアップファイルと保存設定を確認してください。既存履歴は保持されています。';}event.target.value='';};
-showHistory();
-</script></body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light"><meta name="robots" content="noindex,nofollow">
+  <meta name="description" content="全商英検1級・2級の個人学習用。公式過去問を見ながら解答し、自動採点と間違いの復習ができます。">
+  <title>全商英検 Study Room</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23134640'/%3E%3Cpath d='M16 18h14l3 4 3-4h12v30H35l-3 3-3-3H16z' fill='none' stroke='%23e1eeab' stroke-width='4'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css?v=20261115-1"><script src="study-data.js?v=20261115-1" defer></script><script src="engine.js?v=20261115-1" defer></script><script src="app.js?v=20261115-1" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="#home"><span class="brand-icon">E<span>＋</span></span><span>全商英検<small>STUDY ROOM</small></span></a>
+    <div class="side-label">YOUR LEARNING SPACE</div>
+    <nav aria-label="メインメニュー">
+      <a href="#home" data-nav="home"><span>▦</span>過去問を解く</a>
+      <a href="#review" data-nav="review"><span>↻</span>間違いを復習 <b id="review-count">0</b></a>
+      <a href="#history" data-nav="history"><span>▥</span>学習履歴</a>
+      <a href="#settings" data-nav="settings"><span>⚙</span>データ・使い方</a>
+    </nav>
+    <div class="side-note"><span class="private-dot"></span> 個人学習用スペース<p>一問ずつ、できるを増やす。</p><small>全商協会の公式サービスではありません。</small></div>
+  </aside>
+  <main>
+    <header class="topbar"><div><span class="top-label">ENGLISH EXAM / LEVEL 1 & 2</span></div><span class="save-badge" id="save-status">● このブラウザーに自動保存</span></header>
+    <div id="app" tabindex="-1"></div>
+    <footer>全国商業高等学校協会の公式過去問を参照した個人用学習ツール <a href="#settings">出典・利用について</a></footer>
+  </main>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <dialog id="modal"><div id="modal-content"></div></dialog>
+</body></html>
